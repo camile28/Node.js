@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const express = require("express");
 
 const cors = require("cors");
@@ -12,10 +14,12 @@ const PRODUCTS = [
   { name: "Smuikas", price: 300 },
 ];
 
-const TASKS = [
+let TASKS = [
   { id: 1, name: "Nuvalyti langus", isComplete: false },
   { id: 2, name: "Issiurbti namus", isComplete: true },
 ];
+
+let LAST_TASK_ID = TASKS[TASKS.length - 1].id;
 
 const USERS = [
   { id: 1, name: "petras", email: "petras123@gmail.com" },
@@ -63,12 +67,45 @@ app.get("/tasks/:id", (req, res) => {
   res.json(task);
 });
 
+app.post("/tasks", (req, res) => {
+  const newTask = req.body;
+  const newTaskId = TASKS[TASKS.length - 1].id + 1;
+  TASKS.push({ id: newTaskId, name: newTask.name, isComplete: false });
+  res.json(TASKS);
+});
+
+app.delete("/tasks/:id", (req, res) => {
+  const id = req.params.id;
+  const UPDATED_TASKS = TASKS.filter(
+    (task) => task.id.toString() !== id.toString()
+  );
+  TASKS = UPDATED_TASKS;
+  res.json(TASKS);
+});
+
+app.patch("/tasks/:id", (req, res) => {
+  const body = req.body;
+  const { id } = req.params;
+  const UPDATED_TASKS = TASKS.map((task) => {
+    if (task.id.toString() === id.toString()) {
+      return {
+        ...task, //id, name, isComplete
+        ...body, //isComplete
+      };
+    }
+    return task;
+  });
+
+  TASKS = UPDATED_TASKS;
+  res.json(TASKS);
+});
+
 app.get("*", (req, res) => {
   res.json({
     message: "Sis endpont neegzistuoja",
   });
 });
 
-app.listen(3000, () => {
-  console.log("Server started");
+app.listen(process.env.PORT, () => {
+  console.log("Server started on PORT ${processs.env.PORT}");
 });
